@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Fleet Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f4f0;--sur:#fff;--sur2:#f0efe9;--bdr:#e0dfd8;
+  --txt:#1a1916;--mut:#888580;
+  --ok:#1a7a4a;--okb:#e8f5ee;--okbd:#b4ddc5;
+  --wn:#8a5f00;--wnb:#fef7e0;--wnbd:#f0d080;
+  --dn:#c0392b;--dnb:#fdecea;--dnbd:#f5b8b3;
+  --by:#1a4a8a;--byb:#e8f0fe;--bybd:#a8c4f0;
+  --ep:#5b21b6;--epb:#ede9fe;--epbd:#c4b5fd;
+  --ad:#b45309;--adb:#fef3c7;--adbd:#fcd34d;
+  --mono:'IBM Plex Mono',monospace;--sans:'Sarabun',sans-serif;--r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);min-height:100vh;font-size:15px;}
+button,input,select,textarea{font-family:var(--sans);}
+button{cursor:pointer;}
+img{display:block;}
+
+/* NAV */
+.nav{background:var(--sur);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:200;}
+.nav-in{max-width:720px;margin:0 auto;padding:0 14px;display:flex;align-items:center;justify-content:space-between;height:50px;gap:8px;}
+.logo{font-family:var(--mono);font-size:12px;color:var(--mut);letter-spacing:.1em;flex-shrink:0;}
+.logo b{color:var(--txt);}
+.tabs{display:flex;gap:2px;background:var(--sur2);border-radius:8px;padding:3px;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:5px 10px;border-radius:6px;border:none;background:none;font-size:12px;color:var(--mut);font-weight:500;transition:all .15s;white-space:nowrap;}
+.tab.on{background:var(--sur);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.tab.admin-tab{color:var(--ad);}
+.tab.admin-tab.on{background:var(--adb);color:var(--ad);}
+
+/* PAGES */
+.page{display:none;max-width:720px;margin:0 auto;padding:18px 14px 60px;}
+.page.on{display:block;}
+.slabel{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--mut);text-transform:uppercase;margin-bottom:10px;}
+
+/* LOADING */
+.lbar{height:2px;background:var(--ok);position:fixed;top:50px;left:0;right:0;z-index:300;display:none;animation:lp 1.5s ease-in-out infinite;}
+@keyframes lp{0%{opacity:.4}50%{opacity:1}100%{opacity:.4}}
+.lbar.show{display:block;}
+
+/* CONFIG BANNER */
+.cfg-banner{background:var(--wnb);border:1px solid var(--wnbd);border-radius:var(--r);padding:14px 16px;margin-bottom:20px;}
+.cfg-banner h3{font-size:14px;font-weight:600;color:var(--wn);margin-bottom:6px;}
+.cfg-banner p{font-size:13px;color:var(--wn);margin-bottom:10px;}
+
+/* CAR CARDS */
+.car-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;}
+.car-stripe{width:4px;flex-shrink:0;}
+.s-ok{background:var(--ok);}.s-warn{background:#e6a817;}.s-danger{background:var(--dn);}.s-busy{background:var(--by);}
+.car-body{flex:1;padding:14px 16px;}
+.car-r1{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px;}
+.car-name{font-size:15px;font-weight:600;}
+.car-sub{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:1px;}
+.pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;font-family:var(--mono);white-space:nowrap;}
+.p-ok{background:var(--okb);color:var(--ok);}.p-busy{background:var(--byb);color:var(--by);}
+.p-warn{background:var(--wnb);color:var(--wn);}.p-danger{background:var(--dnb);color:var(--dn);}
+.metrics{display:flex;gap:20px;margin-bottom:10px;flex-wrap:wrap;}
+.mval{font-family:var(--mono);font-size:20px;font-weight:500;line-height:1;}
+.mlbl{font-size:11px;color:var(--mut);margin-top:2px;}
+.prog{height:4px;background:var(--sur2);border-radius:2px;overflow:hidden;margin-bottom:4px;}
+.pf{height:100%;border-radius:2px;}
+.pf-ok{background:var(--ok);}.pf-warn{background:#e6a817;}.pf-danger{background:var(--dn);}
+.car-foot{font-size:11px;color:var(--mut);display:flex;justify-content:space-between;}
+.svc-date-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-top:1px solid var(--bdr);background:var(--sur2);font-size:12px;}
+.svc-date-val{font-family:var(--mono);font-size:12px;font-weight:500;}
+.ep-strip{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-top:1px solid var(--epbd);background:var(--epb);}
+.ep-lbl{font-size:11px;color:var(--ep);font-family:var(--mono);}
+.ep-val{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--ep);}
+.ep-low{color:var(--dn);}
+.bk-banner{background:var(--byb);border-top:1px solid var(--bybd);padding:10px 16px;font-size:12px;color:var(--by);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+
+/* DISPATCH */
+.dispatch-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:20px;}
+.drow{display:flex;gap:8px;}
+.dinput{flex:1;border:1px solid var(--bdr);border-radius:8px;padding:9px 12px;font-size:14px;background:var(--sur2);color:var(--txt);}
+.dinput:focus{outline:none;border-color:var(--txt);}
+.dgo{padding:9px 18px;background:var(--txt);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;}
+.drecs{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
+.drec{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid;}
+.dr-ok{background:var(--okb);border-color:var(--okbd);}
+.dr-warn{background:var(--wnb);border-color:var(--wnbd);}
+.dr-no{background:var(--dnb);border-color:var(--dnbd);}
+.dr-busy{background:var(--byb);border-color:var(--bybd);}
+.ddot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dd-ok{background:var(--ok);}.dd-warn{background:#e6a817;}.dd-no{background:var(--dn);}.dd-busy{background:var(--by);}
+
+/* FORMS */
+.fcard{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;margin-bottom:14px;}
+.ftitle{font-size:16px;font-weight:600;margin-bottom:16px;}
+.fgrp{margin-bottom:14px;}
+.flbl{font-size:11px;color:var(--mut);display:block;margin-bottom:5px;font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;}
+.finput{width:100%;border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;font-size:14px;background:var(--sur2);color:var(--txt);transition:border .15s;}
+.finput:focus{outline:none;border-color:var(--txt);background:var(--sur);}
+.date-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ferr{font-size:12px;color:var(--dn);margin-top:4px;}
+.submit-btn{width:100%;padding:13px;background:var(--txt);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;margin-top:4px;transition:opacity .15s;}
+.submit-btn:hover{opacity:.82;}
+.toast{display:none;padding:12px 14px;border-radius:8px;font-size:13px;text-align:center;margin-top:10px;border:1px solid;}
+.toast.show{display:block;}
+.cpicks{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.cpick{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1.5px solid var(--bdr);border-radius:8px;background:none;width:100%;text-align:left;transition:all .15s;}
+.cpick:hover:not(:disabled){border-color:var(--txt);}
+.cpick.sel{border-color:var(--txt);background:var(--sur2);}
+.cpick:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ADMIN */
+.admin-banner{background:var(--adb);border:1px solid var(--adbd);border-radius:var(--r);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--ad);display:flex;align-items:center;gap:6px;}
+.admin-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.atab{padding:7px 14px;border:1px solid var(--bdr);border-radius:8px;background:none;font-size:13px;color:var(--mut);font-weight:500;transition:all .15s;}
+.atab.on{background:var(--txt);color:#fff;border-color:var(--txt);}
+.apanel{display:none;}
+.apanel.on{display:block;}
+.alist{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.aitem{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;}
+.aitem-thumb{width:52px;height:36px;border-radius:6px;object-fit:cover;background:var(--sur2);flex-shrink:0;}
+.aitem-thumb-ph{width:52px;height:36px;border-radius:6px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.aitem-info{flex:1;}
+.aitem-name{font-size:14px;font-weight:600;}
+.aitem-sub{font-size:12px;color:var(--mut);margin-top:2px;}
+.aitem-actions{display:flex;gap:6px;flex-shrink:0;}
+.icon-btn{width:32px;height:32px;border-radius:7px;border:1px solid var(--bdr);background:none;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;}
+.icon-btn:hover{border-color:var(--txt);background:var(--sur2);}
+.icon-btn.del:hover{border-color:var(--dn);background:var(--dnb);}
+.add-row-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;border:1.5px dashed var(--bdr);border-radius:8px;background:none;font-size:13px;color:var(--mut);transition:all .15s;}
+.add-row-btn:hover{border-color:var(--txt);color:var(--txt);}
+
+/* LOGS */
+.lrow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr);}
+.lrow:last-child{border-bottom:none;}
+.lrow-name{font-size:13px;font-weight:500;}
+.lrow-note{font-size:12px;color:var(--mut);}
+.lrow-val{font-family:var(--mono);font-size:13px;}
+.lrow-date{font-size:11px;color:var(--mut);font-family:var(--mono);}
+
+/* EASY PASS */
+.ep-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:10px;}
+.ep-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.ep-balance-big{font-family:var(--mono);font-size:26px;font-weight:500;}
+.ep-actions{display:flex;gap:8px;margin-bottom:12px;}
+.ep-btn{flex:1;padding:9px;border:1px solid var(--bdr);border-radius:8px;background:none;font-size:13px;font-weight:500;color:var(--txt);transition:all .15s;}
+.ep-btn:hover{border-color:var(--txt);background:var(--sur2);}
+.ep-btn.topup{background:var(--epb);border-color:var(--epbd);color:var(--ep);}
+.ep-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr);font-size:13px;}
+.ep-row:last-child{border-bottom:none;}
+.ep-plus{color:var(--ok);font-family:var(--mono);font-weight:500;}
+.ep-minus{color:var(--dn);font-family:var(--mono);font-weight:500;}
+
+/* AVATAR */
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--byb);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--by);flex-shrink:0;}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--sur);border-radius:var(--r);padding:20px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:16px;}
+.modal-btns{display:flex;gap:8px;margin-top:14px;}
+.mcancel{flex:1;padding:10px;border:1px solid var(--bdr);border-radius:8px;background:none;font-size:14px;}
+.mok{flex:1;padding:10px;background:var(--txt);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;}
+.mdanger{flex:1;padding:10px;background:var(--dn);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;}
+.img-preview{width:100%;height:120px;object-fit:cover;border-radius:8px;margin-top:8px;display:none;}
+.img-preview.show{display:block;}
+.search-results{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.sr-img{width:80px;height:56px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:border .15s;}
+.sr-img:hover,.sr-img.sel{border-color:var(--by);}
+
+/* MISC */
+.wl-card{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.wl-del{font-size:12px;color:var(--dn);background:none;border:none;padding:4px;}
+.bk-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.bk-act{font-size:11px;background:none;border:none;display:block;text-align:right;margin-top:5px;}
+.empty{text-align:center;padding:28px;color:var(--mut);font-size:13px;}
+.sk{background:linear-gradient(90deg,var(--sur2) 25%,var(--bdr) 50%,var(--sur2) 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:8px;}
+@keyframes sk{0%{background-position:200%}100%{background-position:-200%}}
+.divider{height:1px;background:var(--bdr);margin:14px 0;}
+.hint{font-size:11px;color:var(--mut);margin-top:4px;line-height:1.5;}
+
+@media(max-width:480px){
+  .logo{display:none;}
+  .tab{padding:5px 8px;font-size:11px;}
+  .page{padding:14px 12px 60px;}
+}
+</style>
+</head>
+<body>
+<div class="lbar" id="lbar"></div>
+
+<nav class="nav">
+  <div class="nav-in">
+    <div class="logo"><b>FLEET</b>.MGR</div>
+    <div class="tabs">
+      <button class="tab on"        onclick="go('status')">สถานะรถ</button>
+      <button class="tab"           onclick="go('book')">จองรถ</button>
+      <button class="tab"           onclick="go('mile')">เลขไมล์</button>
+      <button class="tab"           onclick="go('ep')">Easy Pass</button>
+      <button class="tab"           onclick="go('bookings')">รายการจอง</button>
+      <button class="tab admin-tab" onclick="go('admin')">⚙ Admin</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ STATUS ══ -->
+<div class="page on" id="page-status">
+  <div id="cfg-banner-area"></div>
+  <div class="slabel" style="margin-top:4px">// สถานะรถทั้งหมด</div>
+  <div class="car-grid" id="car-grid">
+    <div class="sk" style="height:140px"></div>
+    <div class="sk" style="height:140px;margin-top:2px"></div>
+    <div class="sk" style="height:140px;margin-top:2px"></div>
+  </div>
+  <div class="slabel">// จัดรถออกภาคสนาม</div>
+  <div class="dispatch-card">
+    <div class="drow">
+      <input class="dinput" id="disp-km" type="number" placeholder="ระยะทางที่จะไป (กม.)">
+      <button class="dgo" onclick="calcDispatch()">เช็ก</button>
+    </div>
+    <div class="drecs" id="disp-results"></div>
+  </div>
+</div>
+
+<!-- ══ BOOK ══ -->
+<div class="page" id="page-book">
+  <div class="fcard">
+    <div class="ftitle">จองรถ</div>
+    <div class="slabel">เลือกรถ</div>
+    <div class="cpicks" id="car-picks"></div>
+    <div class="fgrp"><label class="flbl">ทีม / ชื่อผู้จอง</label><input class="finput" id="b-team" placeholder="เช่น ทีม A"></div>
+    <div class="fgrp"><label class="flbl">ภารกิจ / ปลายทาง</label><input class="finput" id="b-mission" placeholder="เช่น สำรวจพื้นที่กระบี่"></div>
+    <div class="fgrp date-row">
+      <div><label class="flbl">วันที่ออก</label><input class="finput" id="b-start" type="date"></div>
+      <div><label class="flbl">วันที่กลับ</label><input class="finput" id="b-end" type="date"></div>
+    </div>
+    <div class="fgrp"><label class="flbl">จำนวนคนในทีม</label><input class="finput" id="b-count" type="number" min="1" placeholder="คน"></div>
+    <button class="submit-btn" onclick="submitBooking()">ยืนยันการจอง</button>
+    <div class="toast" id="book-toast"></div>
+  </div>
+  <div id="wl-section" style="display:none">
+    <div class="slabel">// คิวรอ</div>
+    <div id="wl-list"></div>
+  </div>
+</div>
+
+<!-- ══ MILEAGE ══ -->
+<div class="page" id="page-mile">
+  <div class="slabel" style="margin-top:4px">// อัปเดตเลขไมล์หลังใช้รถ</div>
+  <div class="cpicks" id="mile-btns"></div>
+  <div class="fcard" id="mile-form" style="display:none">
+    <div class="fgrp">
+      <label class="flbl">เลขไมล์ล่าสุด (กม.)</label>
+      <input class="finput" id="m-miles" type="number" style="font-family:var(--mono);font-size:18px">
+      <div class="ferr" id="m-err"></div>
+    </div>
+    <div class="fgrp"><label class="flbl">ทีม / ผู้กรอก</label><input class="finput" id="m-team" placeholder="ชื่อทีม"></div>
+    <div class="fgrp"><label class="flbl">หมายเหตุ</label><input class="finput" id="m-note" placeholder="เช่น กลับจากภารกิจกระบี่"></div>
+    <button class="submit-btn" onclick="submitMile()">บันทึกเลขไมล์</button>
+    <div class="toast" id="mile-toast">✓ บันทึกเรียบร้อย</div>
+    <div style="margin-top:16px;border-top:1px solid var(--bdr);padding-top:14px;">
+      <div class="slabel" style="margin-bottom:8px">ประวัติล่าสุด</div>
+      <div id="mile-history"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EASY PASS ══ -->
+<div class="page" id="page-ep">
+  <div class="slabel" style="margin-top:4px">// Easy Pass — ยอดคงเหลือ</div>
+  <div id="ep-cards"></div>
+</div>
+
+<!-- ══ BOOKINGS ══ -->
+<div class="page" id="page-bookings">
+  <div class="slabel" style="margin-top:4px">// รายการจองทั้งหมด</div>
+  <div id="all-bookings"></div>
+</div>
+
+<!-- ══ ADMIN ══ -->
+<div class="page" id="page-admin">
+  <div class="admin-banner">⚙️ <strong>Admin Panel</strong> — จัดการรถ สมาชิก และข้อมูลระบบ</div>
+  <div class="admin-tabs">
+    <button class="atab on" onclick="switchAdmin('cars')">🚗 รถ</button>
+    <button class="atab" onclick="switchAdmin('members')">👥 สมาชิก</button>
+    <button class="atab" onclick="switchAdmin('mile-edit')">📍 แก้ไขเลขไมล์</button>
+    <button class="atab" onclick="switchAdmin('ep-edit')">💳 แก้ไข Easy Pass</button>
+    <button class="atab" onclick="switchAdmin('settings')">🔗 ตั้งค่า API</button>
+  </div>
+
+  <div class="apanel on" id="apanel-cars">
+    <div class="slabel">รถในระบบ</div>
+    <div class="alist" id="admin-car-list"></div>
+    <button class="add-row-btn" onclick="openCarModal()">＋ เพิ่มรถ</button>
+  </div>
+
+  <div class="apanel" id="apanel-members">
+    <div class="slabel">สมาชิกในระบบ</div>
+    <div class="alist" id="admin-member-list"></div>
+    <button class="add-row-btn" onclick="openMemberModal()">＋ เพิ่มสมาชิก</button>
+  </div>
+
+  <div class="apanel" id="apanel-mile-edit">
+    <div class="slabel">เลือกรถเพื่อแก้ไขเลขไมล์</div>
+    <div class="cpicks" id="admin-mile-picks"></div>
+    <div id="admin-mile-log"></div>
+  </div>
+
+  <div class="apanel" id="apanel-ep-edit">
+    <div class="slabel">เลือกรถเพื่อแก้ไข Easy Pass</div>
+    <div class="cpicks" id="admin-ep-picks"></div>
+    <div id="admin-ep-log"></div>
+  </div>
+
+  <div class="apanel" id="apanel-settings">
+    <div class="fcard">
+      <div class="ftitle">🔗 ตั้งค่า Google Apps Script</div>
+      <div class="fgrp">
+        <label class="flbl">Apps Script Web App URL</label>
+        <input class="finput" id="api-url-input" placeholder="https://script.google.com/macros/s/.../exec" style="font-family:var(--mono);font-size:13px">
+      </div>
+      <button class="submit-btn" onclick="saveApiUrl()">บันทึก URL</button>
+      <div class="toast" id="settings-toast"></div>
+      <div class="divider"></div>
+      <div class="slabel">วิธีตั้งค่า</div>
+      <div style="font-size:13px;color:var(--mut);line-height:2;">
+        1. สร้าง Google Sheet ใหม่<br>
+        2. Extensions → Apps Script<br>
+        3. วางโค้ดจาก <b style="color:var(--txt)">Code.gs</b> ทั้งหมด<br>
+        4. เปลี่ยน dropdown เป็น <b style="color:var(--txt)">initializeSheets</b> → ▶ เรียกใช้<br>
+        5. Deploy → New deployment → Web App<br>
+        &nbsp;&nbsp;&nbsp;Execute as: <b style="color:var(--txt)">Me</b> | Who has access: <b style="color:var(--txt)">Anyone</b><br>
+        6. Copy URL มาวางด้านบน → บันทึก
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: CAR ══ -->
+<div class="modal-bg" id="modal-car">
+  <div class="modal">
+    <div class="modal-title" id="modal-car-title">เพิ่มรถ</div>
+    <input type="hidden" id="car-edit-id">
+    <div class="fgrp"><label class="flbl">ชื่อรถ</label><input class="finput" id="car-name" placeholder="เช่น รถคันที่ 1"></div>
+    <div class="fgrp"><label class="flbl">ทะเบียน</label><input class="finput" id="car-plate" placeholder="เช่น กข-1234"></div>
+    <div class="fgrp date-row">
+      <div><label class="flbl">ยี่ห้อ</label><input class="finput" id="car-brand" placeholder="Toyota"></div>
+      <div><label class="flbl">รุ่น</label><input class="finput" id="car-model" placeholder="Fortuner"></div>
+    </div>
+    <div class="fgrp date-row">
+      <div><label class="flbl">เลขไมล์ปัจจุบัน</label><input class="finput" id="car-miles" type="number" placeholder="0"></div>
+      <div><label class="flbl">รอบเซอร์วิส (กม.)</label><input class="finput" id="car-interval" type="number" placeholder="5000"></div>
+    </div>
+    <div style="background:var(--sur2);border-radius:8px;padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:11px;font-family:var(--mono);color:var(--mut);letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;">เซอร์วิสถัดไป — ระบุอย่างใดอย่างหนึ่ง</div>
+      <div class="fgrp" style="margin-bottom:10px;">
+        <label class="flbl">เลขไมล์ที่จะเข้าเซอร์วิส (กม.)</label>
+        <input class="finput" id="car-next-svc-miles" type="number" placeholder="เช่น 50000">
+        <div class="hint">ถ้าไม่ระบุ ระบบจะคำนวณจาก เลขไมล์ปัจจุบัน + รอบเซอร์วิส</div>
+      </div>
+      <div class="fgrp" style="margin-bottom:0">
+        <label class="flbl">วันที่นัดเข้าเซอร์วิส</label>
+        <input class="finput" id="car-svc-date" type="date">
+        <div class="hint">ถ้าไม่ระบุ ระบบจะประมาณจากอัตราการใช้งานเฉลี่ยต่อวัน</div>
+      </div>
+    </div>
+    <div class="fgrp">
+      <label class="flbl">ค้นหารูปรถ</label>
+      <div style="display:flex;gap:8px">
+        <input class="finput" id="car-img-search" placeholder="เช่น Toyota Fortuner 2023" style="flex:1">
+        <button style="padding:9px 14px;background:var(--by);color:#fff;border:none;border-radius:8px;font-size:13px;white-space:nowrap" onclick="searchCarImages()">ค้นหา</button>
+      </div>
+      <div class="search-results" id="search-results"></div>
+      <div style="margin-top:10px">
+        <label class="flbl">หรือวาง URL รูปโดยตรง</label>
+        <input class="finput" id="car-img-url" placeholder="https://..." oninput="previewImg()">
+      </div>
+      <img id="car-img-preview" class="img-preview" src="" alt="preview" onerror="this.style.display='none'">
+    </div>
+    <div class="modal-btns">
+      <button class="mcancel" onclick="closeModal('modal-car')">ยกเลิก</button>
+      <button class="mok" onclick="submitCar()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: CAR DELETE ══ -->
+<div class="modal-bg" id="modal-car-del">
+  <div class="modal">
+    <div class="modal-title">ลบรถออกจากระบบ?</div>
+    <input type="hidden" id="car-del-id">
+    <p style="font-size:13px;color:var(--mut);margin-bottom:4px">รถ: <b id="car-del-name"></b></p>
+    <p style="font-size:12px;color:var(--dn)">ข้อมูลการจองและเลขไมล์ใน Sheet จะยังคงอยู่</p>
+    <div class="modal-btns">
+      <button class="mcancel" onclick="closeModal('modal-car-del')">ยกเลิก</button>
+      <button class="mdanger" onclick="confirmDeleteCar()">ลบรถ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: MEMBER ══ -->
+<div class="modal-bg" id="modal-member">
+  <div class="modal">
+    <div class="modal-title" id="modal-member-title">เพิ่มสมาชิก</div>
+    <input type="hidden" id="mem-edit-id">
+    <div class="fgrp"><label class="flbl">ชื่อ-นามสกุล</label><input class="finput" id="mem-name" placeholder="สมชาย ใจดี"></div>
+    <div class="fgrp"><label class="flbl">ทีม</label><input class="finput" id="mem-team" placeholder="เช่น ทีม A"></div>
+    <div class="fgrp">
+      <label class="flbl">บทบาท</label>
+      <select class="finput" id="mem-role">
+        <option value="member">สมาชิก</option>
+        <option value="driver">คนขับ</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="mcancel" onclick="closeModal('modal-member')">ยกเลิก</button>
+      <button class="mok" onclick="submitMember()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: MEMBER DELETE ══ -->
+<div class="modal-bg" id="modal-member-del">
+  <div class="modal">
+    <div class="modal-title">ลบสมาชิก?</div>
+    <input type="hidden" id="mem-del-id">
+    <p style="font-size:13px;color:var(--mut)">สมาชิก: <b id="mem-del-name"></b></p>
+    <div class="modal-btns">
+      <button class="mcancel" onclick="closeModal('modal-member-del')">ยกเลิก</button>
+      <button class="mdanger" onclick="confirmDeleteMember()">ลบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: EDIT MILE ══ -->
+<div class="modal-bg" id="modal-mile-edit">
+  <div class="modal">
+    <div class="modal-title">แก้ไขรายการเลขไมล์</div>
+    <input type="hidden" id="mile-edit-id">
+    <div class="fgrp"><label class="flbl">เลขไมล์ (กม.)</label><input class="finput" id="mile-edit-val" type="number" style="font-family:var(--mono)"></div>
+    <div class="fgrp"><label class="flbl">หมายเหตุ</label><input class="finput" id="mile-edit-note"></div>
+    <div class="modal-btns">
+      <button class="mcancel" onclick="closeModal('modal-mile-edit')">ยกเลิก</button>
+      <button class="mok" onclick="submitEditMile()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: EDIT EP ══ -->
+<div class="modal-bg" id="modal-ep-edit">
+  <div class="modal">
+    <div class="modal-title">แก้ไข Easy Pass</div>
+    <input type="hidden" id="ep-edit-id">
+    <div class="fgrp"><label class="flbl">จำนวนเงิน (บาท)</label><input class="finput" id="ep-edit-val" type="number" style="font-family:var(--mono)"></div>
+    <div class="fgrp"><label class="flbl">หมายเหตุ</label><input class="finput" id="ep-edit-note"></div>
+    <div class="modal-btns">
+      <button class="mcancel" onclick="closeModal('modal-ep-edit')">ยกเลิก</button>
+      <button class="mok" onclick="submitEditEp()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADD EP ══ -->
+<div class="modal-bg" id="modal-ep-add">
+  <div class="modal">
+    <div class="modal-title" id="ep-add-title">เติม Easy Pass</div>
+    <input type="hidden" id="ep-add-car">
+    <input type="hidden" id="ep-add-type">
+    <div class="fgrp"><label class="flbl">จำนวนเงิน (บาท)</label><input class="finput" id="ep-add-amount" type="number" placeholder="500" style="font-family:var(--mono);font-size:18px"></div>
+    <div class="fgrp"><label class="flbl">หมายเหตุ</label><input class="finput" id="ep-add-note" placeholder="เช่น เติมรอบเดือน พ.ค."></div>
+    <div class="modal-btns">
+      <button class="mcancel" onclick="closeModal('modal-ep-add')">ยกเลิก</button>
+      <button class="mok" onclick="submitEpAdd()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ CONFIG ══
+const CFG_KEY = 'fleet_api_url_v2';
+let API_URL = localStorage.getItem(CFG_KEY) || '';
+let db = { cars:[], members:[], bookings:[], miles:[], easypass:[], waitlist:[] };
+let selBook=null, selMile=null, adminMileCar=null, adminEpCar=null;
+
+// ══ UTILS ══
+const km  = n => Number(n||0).toLocaleString('th-TH');
+const thb = n => '฿' + Number(n||0).toLocaleString('th-TH');
+
+function fdate(s) {
+  if (!s) return '—';
+  // รองรับทั้ง string ISO และ Date object จาก Apps Script
+  const str = (s instanceof Date) ? s.toISOString() : String(s);
+  // ตัด timestamp ออก แล้วแยก y/m/d
+  const parts = str.slice(0,10).split('-');
+  if (parts.length < 3) return str;
+  const [y,m,d] = parts;
+  const mo = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return `${+d} ${mo[+m-1]} ${+y+543}`;
+}
+
+function fts(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d)) return String(ts).slice(0,10);
+  return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
+}
+
+function initials(name) {
+  return (name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+
+// ══ LOADING ══
+function loading(on) { document.getElementById('lbar').className = on ? 'lbar show' : 'lbar'; }
+
+// ══ API ══
+async function apiGet(params) {
+  if (!API_URL) return null;
+  loading(true);
+  try {
+    const r = await fetch(API_URL + '?' + new URLSearchParams(params));
+    const d = await r.json();
+    loading(false); return d;
+  } catch(e) { loading(false); return null; }
+}
+
+async function apiPost(body) {
+  if (!API_URL) return null;
+  loading(true);
+  try {
+    const r = await fetch(API_URL, { method:'POST', body:JSON.stringify(body) });
+    const d = await r.json();
+    loading(false); return d;
+  } catch(e) { loading(false); return null; }
+}
+
+// ══ CONFIG BANNER ══
+function renderCfgBanner() {
+  const el = document.getElementById('cfg-banner-area');
+  if (API_URL) { el.innerHTML=''; return; }
+  el.innerHTML = `<div class="cfg-banner">
+    <h3>⚙️ ยังไม่ได้ตั้งค่า API</h3>
+    <p>ไปที่ <b>Admin → 🔗 ตั้งค่า API</b> เพื่อใส่ Google Apps Script URL</p>
+  </div>`;
+}
+
+function saveApiUrl() {
+  const val = document.getElementById('api-url-input').value.trim();
+  if (!val) return;
+  API_URL = val;
+  localStorage.setItem(CFG_KEY, val);
+  showToast('settings-toast', '✓ บันทึก URL แล้ว — กำลังโหลดข้อมูล...', true);
+  renderCfgBanner();
+  loadAll();
+}
+
+// ══ LOAD ══
+async function loadAll() {
+  const data = await apiGet({ action:'getAllData' });
+  if (!data || data.error) return;
+  if (data.cars)     db.cars     = data.cars;
+  if (data.members)  db.members  = data.members;
+  if (data.bookings) db.bookings = data.bookings;
+  if (data.miles)    db.miles    = data.miles;
+  if (data.easypass) db.easypass = data.easypass;
+  if (data.waitlist) db.waitlist = data.waitlist;
+  renderAll();
+}
+
+function renderAll() {
+  renderStatus();
+  renderPicks();
+  renderMileBtns();
+  renderEpCards();
+  renderAllBookings();
+  renderWaitlist();
+  renderAdminCars();
+  renderAdminMembers();
+  renderAdminMilePicks();
+  renderAdminEpPicks();
+  const el = document.getElementById('api-url-input');
+  if (el) el.value = API_URL;
+}
+
+// ══ COMPUTED ══
+
+// คืนสถานะรถโดยเช็กทั้งระยะกม. และวันที่ — เตือนอันที่ถึงก่อน
+function carSt(car) {
+  const act = db.bookings.find(b => b.carId===car.id && b.status==='active');
+  if (act) return { key:'busy', label:'ออกภาคสนาม', bk:act };
+
+  const miles = Number(car.miles)||0;
+  const nxt   = Number(car.nextSvc)||0;
+  const lst   = Number(car.lastSvcMiles)||0;
+  const itv   = Number(car.svcInterval)||5000;
+  const remKm = nxt - miles;
+  const pct   = itv > 0 ? (miles - lst) / itv : 0;
+
+  // เช็กวันที่ถ้ามี
+  let dateUrgency = 'ok'; // ok / warn / danger
+  let daysLeft = null;
+  if (car.nextSvcDate && String(car.nextSvcDate).length >= 8) {
+    const svcDate = new Date(String(car.nextSvcDate).slice(0,10));
+    const today   = new Date(); today.setHours(0,0,0,0);
+    daysLeft = Math.ceil((svcDate - today) / 86400000);
+    if (daysLeft <= 0)  dateUrgency = 'danger';
+    else if (daysLeft <= 7)  dateUrgency = 'danger';
+    else if (daysLeft <= 30) dateUrgency = 'warn';
+  }
+
+  // สรุปสถานะจากทั้งสองเงื่อนไข — เอาอันที่แย่กว่า
+  const kmKey  = remKm<=0 ? 'danger' : pct>=.85 ? 'danger' : pct>=.65 ? 'warn' : 'ok';
+  const dateKey = dateUrgency;
+  const ord = { ok:0, warn:1, danger:2 };
+  const finalKey = ord[kmKey] >= ord[dateKey] ? kmKey : dateKey;
+
+  // label บอกว่าอันไหนที่กดดันกว่า
+  let label = 'ว่าง / พร้อม';
+  if (finalKey === 'danger') {
+    if (remKm <= 0 && (daysLeft===null || daysLeft > 0)) label = 'เกินระยะ!';
+    else if (daysLeft !== null && daysLeft <= 0) label = 'ถึงวันแล้ว!';
+    else label = 'ใกล้มาก';
+  } else if (finalKey === 'warn') {
+    label = 'ติดตาม';
+  }
+
+  return { key:finalKey, label, pct, rem:remKm, daysLeft };
+}
+
+// คำนวณและแสดงข้อมูลเซอร์วิสถัดไป — เช็กทั้ง กม. และวันที่
+function estimateSvcDate(car) {
+  const remKm  = Number(car.nextSvc) - Number(car.miles);
+  const hasDate = car.nextSvcDate && String(car.nextSvcDate).length >= 8;
+
+  // ── ฝั่งกม. ──
+  let milesStr   = remKm > 0 ? `${km(car.nextSvc)} กม. (เหลือ ${km(remKm)} กม.)` : '⚠ เกินระยะแล้ว!';
+  let milesUrgent = remKm <= 0;
+
+  // ── ฝั่งวันที่ ──
+  let dateStr   = '—';
+  let dateUrgent = false;
+  let daysLeft  = null;
+
+  if (hasDate) {
+    const svcDate = new Date(String(car.nextSvcDate).slice(0,10));
+    const today   = new Date(); today.setHours(0,0,0,0);
+    daysLeft = Math.ceil((svcDate - today) / 86400000);
+    dateUrgent = daysLeft <= 7;
+    if (daysLeft < 0)       dateStr = `⚠ เลยกำหนด ${Math.abs(daysLeft)} วันแล้ว!`;
+    else if (daysLeft === 0) dateStr = `วันนี้!`;
+    else                     dateStr = `${fdate(String(car.nextSvcDate).slice(0,10))} (อีก ${daysLeft} วัน)`;
+  } else {
+    // ประมาณจากอัตราการใช้งาน
+    const logs = db.miles.filter(l=>l.carId===car.id).sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+    if (logs.length >= 2 && remKm > 0) {
+      const first=logs[0], last=logs[logs.length-1];
+      const days=(new Date(last.ts)-new Date(first.ts))/86400000;
+      const dist=Number(last.miles)-Number(first.miles);
+      if (days>0&&dist>0) {
+        const kmpd=dist/days;
+        const dl=Math.round(remKm/kmpd);
+        const target=new Date(); target.setDate(target.getDate()+dl);
+        dateStr=`${fdate(target.toISOString().slice(0,10))} (~${dl} วัน, ประมาณ)`;
+      }
+    }
+  }
+
+  // บอกว่าอันไหนจะถึงก่อน
+  let trigger = '';
+  if (hasDate && daysLeft !== null && remKm > 0) {
+    // ประมาณวันถึงกม. จากอัตราการใช้
+    const logs = db.miles.filter(l=>l.carId===car.id).sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+    let kmDays = null;
+    if (logs.length >= 2) {
+      const first=logs[0], last=logs[logs.length-1];
+      const days=(new Date(last.ts)-new Date(first.ts))/86400000;
+      const dist=Number(last.miles)-Number(first.miles);
+      if (days>0&&dist>0) kmDays = Math.round(remKm/(dist/days));
+    }
+    if (kmDays !== null) {
+      trigger = kmDays < daysLeft ? '⚡ ระยะกม.ถึงก่อน' : '⚡ วันที่ถึงก่อน';
+    }
+  }
+
+  return { milesStr, dateStr, milesUrgent, dateUrgent, trigger, overdue: milesUrgent || (daysLeft!==null&&daysLeft<=0) };
+}
+
+function epBal(carId) {
+  return db.easypass
+    .filter(e => e.carId===carId)
+    .reduce((s,e) => s + (e.type==='topup' ? +e.amount : -+e.amount), 0);
+}
+
+function isAvail(carId, start, end) {
+  return !db.bookings.some(b =>
+    b.carId===carId && b.status==='active' &&
+    !(end < b.start || start > b.end)
+  );
+}
+
+function carImgHtml(car, w=64, h=44) {
+  const style = `width:${w}px;height:${h}px;border-radius:6px;object-fit:cover;flex-shrink:0`;
+  if (car.imageUrl)
+    return `<img src="${car.imageUrl}" style="${style}" onerror="this.style.display='none'">`;
+  return `<div style="${style};background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(h*0.5)}px">🚗</div>`;
+}
+
+// ══ STATUS PAGE ══
+function renderStatus() {
+  const g = document.getElementById('car-grid');
+  if (!db.cars.length) { g.innerHTML = '<div class="empty">ไม่พบข้อมูลรถ — ตั้งค่า API ก่อน</div>'; return; }
+  g.innerHTML = '';
+  db.cars.forEach(car => {
+    const st  = carSt(car);
+    const sk  = st.key;
+    const pct = sk !== 'busy' ? Math.min(st.pct*100, 100).toFixed(0) : 0;
+    const rc  = sk==='ok' ? 'var(--ok)' : sk==='warn' ? '#e6a817' : 'var(--dn)';
+    const bal = epBal(car.id);
+    const svcInfo  = sk !== 'busy' ? estimateSvcDate(car) : null;
+    const svcColor = sk==='danger' ? 'var(--dn)' : sk==='warn' ? '#e6a817' : 'var(--ok)';
+    const milesColor = svcInfo?.milesUrgent ? 'var(--dn)' : svcColor;
+    const dateColor  = svcInfo?.dateUrgent  ? 'var(--dn)' : svcColor;
+
+    const metHtml = sk !== 'busy'
+      ? `<div class="metrics">
+           <div><div class="mval">${km(car.miles)}</div><div class="mlbl">กม. ปัจจุบัน</div></div>
+           <div><div class="mval" style="color:${rc}">${st.rem>0 ? km(st.rem) : 'เกิน '+km(-st.rem)}</div><div class="mlbl">กม. ถึงเซอร์วิส</div></div>
+         </div>
+         <div class="prog"><div class="pf pf-${sk}" style="width:${pct}%"></div></div>
+         <div class="car-foot"><span>${car.brand||''} ${car.model||''}</span><span>${pct}% ของรอบ</span></div>`
+      : `<div class="metrics"><div><div class="mval">${km(car.miles)}</div><div class="mlbl">กม. ตอนออก</div></div></div>
+         <div class="car-foot"><span>${car.brand||''} ${car.model||''}</span></div>`;
+
+    const bkBanner = sk === 'busy'
+      ? `<div class="bk-banner">
+           <div><b>${st.bk.team}</b> — ${st.bk.mission}<br>
+           <span style="font-family:var(--mono);font-size:11px">${fdate(st.bk.start)} → ${fdate(st.bk.end)} · ${st.bk.headcount} คน</span></div>
+           <div style="font-family:var(--mono);font-size:11px;flex-shrink:0">กลับ ${fdate(st.bk.end)}</div>
+         </div>` : '';
+
+    const svcBar = sk !== 'busy' && svcInfo
+      ? `<div class="svc-date-bar" style="flex-direction:column;align-items:stretch;gap:6px;padding:10px 16px;">
+           ${svcInfo.trigger ? `<div style="font-size:11px;font-family:var(--mono);color:var(--dn);font-weight:600;margin-bottom:2px">${svcInfo.trigger}</div>` : ''}
+           <div style="display:flex;justify-content:space-between;align-items:center;">
+             <span style="color:var(--mut);font-size:12px;">🔧 ระยะกม.เซอร์วิส</span>
+             <span style="color:${milesColor};font-size:12px;font-family:var(--mono);font-weight:500;text-align:right;max-width:60%">${svcInfo.milesStr}</span>
+           </div>
+           <div style="display:flex;justify-content:space-between;align-items:center;">
+             <span style="color:var(--mut);font-size:12px;">📅 วันที่นัดเซอร์วิส</span>
+             <span style="color:${dateColor};font-size:12px;font-family:var(--mono);font-weight:500;text-align:right;max-width:60%">${svcInfo.dateStr}</span>
+           </div>
+         </div>` : '';
+
+    g.innerHTML += `<div class="card">
+      <div style="display:flex">
+        <div class="car-stripe s-${sk}"></div>
+        <div class="car-body" style="flex:1">
+          <div class="car-r1">
+            <div style="display:flex;align-items:center;gap:10px;flex:1">
+              ${carImgHtml(car)}
+              <div><div class="car-name">${car.name}</div><div class="car-sub">${car.plate}</div></div>
+            </div>
+            <span class="pill p-${sk}">${st.label}</span>
+          </div>
+          ${metHtml}
+        </div>
+      </div>
+      ${bkBanner}${svcBar}
+      <div class="ep-strip">
+        <span class="ep-lbl">EASY PASS</span>
+        <span class="ep-val ${bal<100?'ep-low':''}">${thb(bal)}${bal<100?' ⚠':''}</span>
+      </div>
+    </div>`;
+  });
+}
+
+function calcDispatch() {
+  const tkm = parseInt(document.getElementById('disp-km').value)||0;
+  const el  = document.getElementById('disp-results');
+  if (!tkm) { el.innerHTML=''; return; }
+  const ord = {'dr-ok':0,'dr-warn':1,'dr-busy':2,'dr-no':3};
+  const rows = db.cars.map(car => {
+    const st = carSt(car);
+    if (st.key==='busy')
+      return { car, cls:'dr-busy', dot:'dd-busy', msg:`${st.bk.team} ใช้อยู่ — กลับ ${fdate(st.bk.end)}` };
+    const rem   = Number(car.nextSvc) - Number(car.miles);
+    const after = rem - tkm;
+    if (after < 0)   return { car, cls:'dr-no',   dot:'dd-no',   msg:`จะเกินระยะ ${km(-after)} กม. ระหว่างทาง` };
+    if (after < 500) return { car, cls:'dr-warn', dot:'dd-warn', msg:`หลังกลับเหลือ ${km(after)} กม. — ควรเข้าศูนย์` };
+    return               { car, cls:'dr-ok',   dot:'dd-ok',   msg:`ปลอดภัย — หลังกลับเหลือ ${km(after)} กม.` };
+  }).sort((a,b) => ord[a.cls]-ord[b.cls]);
+  el.innerHTML = rows.map(r => `<div class="drec ${r.cls}">
+    <div class="ddot ${r.dot}"></div>
+    <div>
+      <div style="font-size:13px;font-weight:600">${r.car.name}
+        <span style="font-family:var(--mono);font-size:10px;opacity:.6">${r.car.plate}</span>
+      </div>
+      <div style="font-size:12px;color:var(--mut)">${r.msg}</div>
+    </div>
+  </div>`).join('');
+}
+
+// ══ BOOKING ══
+function renderPicks() {
+  const el = document.getElementById('car-picks');
+  if (!el) return;
+  const s = document.getElementById('b-start')?.value;
+  const e = document.getElementById('b-end')?.value;
+  el.innerHTML = db.cars.map(car => {
+    const avail = (!s||!e) || isAvail(car.id, s, e);
+    return `<button class="cpick${selBook===car.id?' sel':''}" onclick="pickCar('${car.id}')" ${!avail?'disabled':''}>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${carImgHtml(car,40,28)}
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--txt)">${car.name}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--mut)">${car.plate} · ${km(car.miles)} กม.</div>
+        </div>
+      </div>
+      <div>${avail
+        ? '<span style="font-size:12px;font-weight:600;color:var(--ok)">ว่าง</span>'
+        : '<span style="font-size:11px;color:var(--by);font-family:var(--mono)">ไม่ว่างช่วงนั้น</span>'}</div>
+    </button>`;
+  }).join('');
+}
+
+function pickCar(id) { selBook=id; renderPicks(); }
+
+async function submitBooking() {
+  const team    = document.getElementById('b-team').value.trim();
+  const mission = document.getElementById('b-mission').value.trim();
+  const start   = document.getElementById('b-start').value;
+  const end     = document.getElementById('b-end').value;
+  const count   = parseInt(document.getElementById('b-count').value)||0;
+  if (!selBook||!team||!mission||!start||!end||!count) { alert('กรุณากรอกข้อมูลให้ครบ'); return; }
+  if (end < start) { alert('วันกลับต้องหลังวันออก'); return; }
+
+  if (!isAvail(selBook, start, end)) {
+    const r = await apiPost({ action:'addWaitlist', data:{team,mission,start,end,headcount:count} });
+    if (r?.ok) { showToast('book-toast','⏳ รถไม่ว่างช่วงนั้น — เพิ่มเข้าคิวรอแล้ว',false); await loadAll(); }
+    return;
+  }
+  const car = db.cars.find(c=>c.id===selBook);
+  const r = await apiPost({ action:'addBooking', data:{carId:selBook,team,mission,start,end,headcount:count,startMiles:car.miles} });
+  if (r?.ok) {
+    showToast('book-toast',`✓ จองสำเร็จ — ${car.name} · ${fdate(start)} ถึง ${fdate(end)}`,true);
+    selBook = null;
+    ['b-team','b-mission','b-start','b-end','b-count'].forEach(i=>document.getElementById(i).value='');
+    await loadAll();
+  }
+}
+
+function renderWaitlist() {
+  const wls = db.waitlist||[];
+  const sec = document.getElementById('wl-section');
+  if (!sec) return;
+  if (!wls.length) { sec.style.display='none'; return; }
+  sec.style.display = 'block';
+  document.getElementById('wl-list').innerHTML = wls.map((w,i) => `<div class="wl-card">
+    <div style="font-family:var(--mono);font-size:12px;color:var(--mut);min-width:22px">#${i+1}</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:600">${w.team}</div>
+      <div style="font-size:12px;color:var(--mut)">${w.mission} · ${w.headcount} คน · ${fdate(w.start)}–${fdate(w.end)}</div>
+    </div>
+    <button class="wl-del" onclick="delWL('${w.id}')">✕</button>
+  </div>`).join('');
+}
+
+async function delWL(id) {
+  await apiPost({ action:'deleteWaitlist', data:{id} });
+  await loadAll();
+}
+
+// ══ MILEAGE ══
+function renderMileBtns() {
+  const el = document.getElementById('mile-btns');
+  if (!el) return;
+  const cmap = { ok:'var(--ok)', warn:'#e6a817', danger:'var(--dn)', busy:'var(--by)' };
+  el.innerHTML = db.cars.map(car => {
+    const st = carSt(car);
+    return `<button class="cpick${selMile===car.id?' sel':''}" onclick="pickMileCar('${car.id}')">
+      <div style="display:flex;align-items:center;gap:8px">
+        ${carImgHtml(car,40,28)}
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--txt)">${car.name}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--mut)">${car.plate}</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--mono);font-size:14px">${km(car.miles)} กม.</div>
+        <div style="font-size:11px;color:${cmap[st.key]};margin-top:2px">${st.label}</div>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function pickMileCar(id) {
+  selMile = id;
+  renderMileBtns();
+  const car = db.cars.find(c=>c.id===id);
+  document.getElementById('mile-form').style.display = 'block';
+  document.getElementById('m-miles').placeholder = `ปัจจุบัน ${km(car.miles)} กม.`;
+  document.getElementById('m-err').textContent = '';
+  document.getElementById('m-miles').value = '';
+  renderMileHistory(id);
+}
+
+function renderMileHistory(carId) {
+  const logs = db.miles.filter(l=>l.carId===carId).slice().reverse().slice(0,10);
+  const el = document.getElementById('mile-history');
+  if (!logs.length) { el.innerHTML='<div class="empty">ยังไม่มีประวัติ</div>'; return; }
+  el.innerHTML = logs.map(l => `<div class="lrow">
+    <div><div class="lrow-name">${l.team}</div><div class="lrow-note">${l.note||'—'}</div></div>
+    <div style="text-align:right"><div class="lrow-val">${km(l.miles)} กม.</div><div class="lrow-date">${fts(l.ts)}</div></div>
+  </div>`).join('');
+}
+
+async function submitMile() {
+  const miles = parseInt(document.getElementById('m-miles').value);
+  const team  = document.getElementById('m-team').value.trim();
+  const note  = document.getElementById('m-note').value.trim();
+  if (!selMile||!miles||!team) { alert('กรอกข้อมูลให้ครบ'); return; }
+  const car = db.cars.find(c=>c.id===selMile);
+  if (miles < Number(car.miles)) {
+    document.getElementById('m-err').textContent = `ต้องไม่น้อยกว่า ${km(car.miles)} กม.`;
+    return;
+  }
+  document.getElementById('m-err').textContent = '';
+  const r = await apiPost({ action:'addMile', data:{carId:selMile,miles,team,note} });
+  if (r?.ok) {
+    showToast('mile-toast','✓ บันทึกเรียบร้อย',true);
+    document.getElementById('m-miles').value = '';
+    document.getElementById('m-note').value  = '';
+    await loadAll();
+    renderMileHistory(selMile);
+  }
+}
+
+// ══ EASY PASS ══
+function renderEpCards() {
+  const el = document.getElementById('ep-cards');
+  if (!el||!db.cars.length) return;
+  el.innerHTML = db.cars.map(car => {
+    const bal  = epBal(car.id);
+    const isLow = bal < 100;
+    const logs = db.easypass.filter(e=>e.carId===car.id).slice().reverse().slice(0,8);
+    return `<div class="ep-card">
+      <div class="ep-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${carImgHtml(car,52,36)}
+          <div>
+            <div style="font-size:15px;font-weight:600">${car.name}</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--mut)">${car.plate}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="ep-balance-big" style="color:${isLow?'var(--dn)':'var(--ep)'}">${thb(bal)}</div>
+          <div style="font-size:11px;color:var(--mut)">${isLow?'⚠ ยอดต่ำ':'ยอดคงเหลือ'}</div>
+        </div>
+      </div>
+      <div class="ep-actions">
+        <button class="ep-btn topup" onclick="openEpAdd('${car.id}','topup')">＋ เติมเงิน</button>
+        <button class="ep-btn" onclick="openEpAdd('${car.id}','use')">− บันทึกใช้งาน</button>
+      </div>
+      <div>${logs.length
+        ? logs.map(l=>`<div class="ep-row">
+            <div>
+              <div style="font-size:13px;font-weight:500">${l.type==='topup'?'เติมเงิน':'ใช้ทางด่วน'}</div>
+              <div style="font-size:12px;color:var(--mut)">${l.note||'—'} · ${fts(l.ts)}</div>
+            </div>
+            <span class="${l.type==='topup'?'ep-plus':'ep-minus'}">${l.type==='topup'?'+':'-'}${thb(l.amount)}</span>
+          </div>`).join('')
+        : '<div class="empty" style="padding:14px">ยังไม่มีประวัติ</div>'}</div>
+    </div>`;
+  }).join('');
+}
+
+function openEpAdd(carId, type) {
+  const car = db.cars.find(c=>c.id===carId);
+  document.getElementById('ep-add-car').value = carId;
+  document.getElementById('ep-add-type').value = type;
+  document.getElementById('ep-add-title').textContent =
+    type==='topup' ? `เติม Easy Pass — ${car.name}` : `บันทึกใช้ทางด่วน — ${car.name}`;
+  document.getElementById('ep-add-amount').value = '';
+  document.getElementById('ep-add-note').value   = '';
+  openModal('modal-ep-add');
+}
+
+async function submitEpAdd() {
+  const carId  = document.getElementById('ep-add-car').value;
+  const type   = document.getElementById('ep-add-type').value;
+  const amount = parseInt(document.getElementById('ep-add-amount').value);
+  const note   = document.getElementById('ep-add-note').value.trim();
+  if (!amount||amount<=0) { alert('กรอกจำนวนเงิน'); return; }
+  const r = await apiPost({ action:'addEasyPass', data:{carId,type,amount,note} });
+  if (r?.ok) { closeModal('modal-ep-add'); await loadAll(); }
+}
+
+// ══ BOOKINGS LIST ══
+function renderAllBookings() {
+  const el = document.getElementById('all-bookings');
+  if (!el) return;
+  const bks = [...db.bookings].reverse();
+  if (!bks.length) { el.innerHTML='<div class="empty">ยังไม่มีการจอง</div>'; return; }
+  const pm = { active:'p-busy', done:'p-ok', cancelled:'p-warn' };
+  const tm = { active:'กำลังใช้', done:'เสร็จแล้ว', cancelled:'ยกเลิก' };
+  el.innerHTML = bks.map(bk => {
+    const car = db.cars.find(c=>c.id===bk.carId);
+    return `<div class="bk-card">
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600">${car?.name||'—'}
+          <span style="font-family:var(--mono);font-size:10px;color:var(--mut)">${car?.plate||''}</span>
+        </div>
+        <div style="font-size:12px;color:var(--mut)">${bk.team} · ${bk.headcount} คน</div>
+        <div style="font-size:13px;margin-top:4px">${bk.mission}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:2px">${fdate(bk.start)} → ${fdate(bk.end)}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <span class="pill ${pm[bk.status]}">${tm[bk.status]}</span>
+        ${bk.status==='active' ? `
+          <button class="bk-act" style="color:var(--ok)" onclick="updateBkStatus('${bk.id}','done')">✓ คืนรถ</button>
+          <button class="bk-act" style="color:var(--dn)" onclick="updateBkStatus('${bk.id}','cancelled')">ยกเลิก</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function updateBkStatus(id, status) {
+  const r = await apiPost({ action:'updateBooking', data:{id,status} });
+  if (r?.ok) await loadAll();
+}
+
+// ══ ADMIN ══
+function switchAdmin(name) {
+  document.querySelectorAll('.apanel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.atab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('apanel-'+name).classList.add('on');
+  const idx = ['cars','members','mile-edit','ep-edit','settings'].indexOf(name);
+  document.querySelectorAll('.atab')[idx].classList.add('on');
+}
+
+// ── Admin: Cars ──
+function renderAdminCars() {
+  const el = document.getElementById('admin-car-list');
+  if (!el) return;
+  if (!db.cars.length) { el.innerHTML='<div class="empty">ยังไม่มีรถในระบบ</div>'; return; }
+  el.innerHTML = db.cars.map(car => `<div class="aitem">
+    ${car.imageUrl
+      ? `<img class="aitem-thumb" src="${car.imageUrl}" onerror="this.style.display='none'">`
+      : `<div class="aitem-thumb-ph">🚗</div>`}
+    <div class="aitem-info">
+      <div class="aitem-name">${car.name}</div>
+      <div class="aitem-sub">${car.plate} · ${car.brand||''} ${car.model||''} · ${km(car.miles)} กม.</div>
+    </div>
+    <div class="aitem-actions">
+      <button class="icon-btn" onclick="openEditCar('${car.id}')">✏️</button>
+      <button class="icon-btn del" onclick="openDeleteCar('${car.id}')">🗑️</button>
+    </div>
+  </div>`).join('');
+}
+
+function openCarModal() {
+  document.getElementById('modal-car-title').textContent = 'เพิ่มรถ';
+  document.getElementById('car-edit-id').value = '';
+  ['car-name','car-plate','car-brand','car-model','car-svc-date','car-img-url','car-img-search','car-next-svc-miles'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  document.getElementById('car-miles').value = '';
+  document.getElementById('car-interval').value = 5000;
+  document.getElementById('search-results').innerHTML = '';
+  document.getElementById('car-img-preview').className = 'img-preview';
+  openModal('modal-car');
+}
+
+function openEditCar(id) {
+  const car = db.cars.find(c=>c.id===id) || {};
+  document.getElementById('modal-car-title').textContent = 'แก้ไขรถ';
+  document.getElementById('car-edit-id').value    = id;
+  document.getElementById('car-name').value       = car.name||'';
+  document.getElementById('car-plate').value      = car.plate||'';
+  document.getElementById('car-brand').value      = car.brand||'';
+  document.getElementById('car-model').value      = car.model||'';
+  document.getElementById('car-miles').value      = car.miles||'';
+  document.getElementById('car-interval').value   = car.svcInterval||5000;
+  document.getElementById('car-next-svc-miles').value = car.nextSvc ? String(car.nextSvc) : '';
+  document.getElementById('car-svc-date').value   = car.nextSvcDate ? String(car.nextSvcDate).slice(0,10) : '';
+  document.getElementById('car-img-url').value    = car.imageUrl||'';
+  document.getElementById('search-results').innerHTML = '';
+  const prev = document.getElementById('car-img-preview');
+  if (car.imageUrl) { prev.src=car.imageUrl; prev.className='img-preview show'; }
+  else { prev.className='img-preview'; }
+  openModal('modal-car');
+}
+
+function openDeleteCar(id) {
+  const car = db.cars.find(c=>c.id===id);
+  document.getElementById('car-del-id').value = id;
+  document.getElementById('car-del-name').textContent = car?.name||id;
+  openModal('modal-car-del');
+}
+
+async function submitCar() {
+  const editId = document.getElementById('car-edit-id').value;
+  const d = {
+    name:        document.getElementById('car-name').value.trim(),
+    plate:       document.getElementById('car-plate').value.trim(),
+    brand:       document.getElementById('car-brand').value.trim(),
+    model:       document.getElementById('car-model').value.trim(),
+    miles:       parseInt(document.getElementById('car-miles').value)||0,
+    svcInterval: parseInt(document.getElementById('car-interval').value)||5000,
+    imageUrl:    document.getElementById('car-img-url').value.trim(),
+    nextSvcDate: document.getElementById('car-svc-date').value||'',
+    nextSvcMilesOverride: parseInt(document.getElementById('car-next-svc-miles').value)||0,
+  };
+  if (!d.name||!d.plate) { alert('ใส่ชื่อรถและทะเบียน'); return; }
+  // คำนวณ nextSvc: ถ้ากรอกไว้ใช้ตามนั้น ถ้าไม่กรอกคำนวณจาก miles + interval
+  d.nextSvc = d.nextSvcMilesOverride > d.miles ? d.nextSvcMilesOverride : d.miles + d.svcInterval;
+  let r;
+  if (editId) {
+    d.id = editId;
+    d.lastSvcMiles = d.miles;
+    r = await apiPost({ action:'updateCar', data:d });
+  } else {
+    r = await apiPost({ action:'addCar', data:d });
+  }
+  if (r?.ok) {
+    closeModal('modal-car');
+    document.getElementById('car-edit-id').value = '';
+    await loadAll();
+  }
+}
+
+async function confirmDeleteCar() {
+  const id = document.getElementById('car-del-id').value;
+  const r = await apiPost({ action:'deleteCar', data:{id} });
+  if (r?.ok) { closeModal('modal-car-del'); await loadAll(); }
+}
+
+// ── Admin: Members ──
+const roleLabel = { member:'สมาชิก', driver:'คนขับ', admin:'Admin' };
+
+function renderAdminMembers() {
+  const el = document.getElementById('admin-member-list');
+  if (!el) return;
+  if (!db.members.length) { el.innerHTML='<div class="empty">ยังไม่มีสมาชิก</div>'; return; }
+  el.innerHTML = db.members.map(m => `<div class="aitem">
+    <div class="avatar">${initials(m.name)}</div>
+    <div class="aitem-info">
+      <div class="aitem-name">${m.name}</div>
+      <div class="aitem-sub">${m.team||'—'} · ${roleLabel[m.role]||m.role}</div>
+    </div>
+    <div class="aitem-actions">
+      <button class="icon-btn" onclick="openEditMember('${m.id}')">✏️</button>
+      <button class="icon-btn del" onclick="openDeleteMember('${m.id}')">🗑️</button>
+    </div>
+  </div>`).join('');
+}
+
+function openMemberModal() {
+  document.getElementById('modal-member-title').textContent = 'เพิ่มสมาชิก';
+  document.getElementById('mem-edit-id').value = '';
+  ['mem-name','mem-team'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mem-role').value = 'member';
+  openModal('modal-member');
+}
+
+function openEditMember(id) {
+  const m = db.members.find(x=>x.id===id)||{};
+  document.getElementById('modal-member-title').textContent = 'แก้ไขสมาชิก';
+  document.getElementById('mem-edit-id').value = id;
+  document.getElementById('mem-name').value    = m.name||'';
+  document.getElementById('mem-team').value    = m.team||'';
+  document.getElementById('mem-role').value    = m.role||'member';
+  openModal('modal-member');
+}
+
+function openDeleteMember(id) {
+  const m = db.members.find(x=>x.id===id);
+  document.getElementById('mem-del-id').value = id;
+  document.getElementById('mem-del-name').textContent = m?.name||id;
+  openModal('modal-member-del');
+}
+
+async function submitMember() {
+  const editId = document.getElementById('mem-edit-id').value;
+  const d = {
+    name: document.getElementById('mem-name').value.trim(),
+    team: document.getElementById('mem-team').value.trim(),
+    role: document.getElementById('mem-role').value,
+  };
+  if (!d.name) { alert('ใส่ชื่อสมาชิก'); return; }
+  let r;
+  if (editId) { d.id=editId; r=await apiPost({action:'updateMember',data:d}); }
+  else        { r=await apiPost({action:'addMember',data:d}); }
+  if (r?.ok) { closeModal('modal-member'); document.getElementById('mem-edit-id').value=''; await loadAll(); }
+}
+
+async function confirmDeleteMember() {
+  const id = document.getElementById('mem-del-id').value;
+  const r = await apiPost({ action:'deleteMember', data:{id} });
+  if (r?.ok) { closeModal('modal-member-del'); await loadAll(); }
+}
+
+// ── Admin: Mile Edit ──
+function renderAdminMilePicks() {
+  const el = document.getElementById('admin-mile-picks');
+  if (!el) return;
+  el.innerHTML = db.cars.map(car => `<button class="cpick${adminMileCar===car.id?' sel':''}" onclick="pickAdminMile('${car.id}')">
+    <div style="font-size:14px;font-weight:600;color:var(--txt)">${car.name}</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--mut)">${km(car.miles)} กม.</div>
+  </button>`).join('');
+}
+
+function pickAdminMile(id) {
+  adminMileCar = id;
+  renderAdminMilePicks();
+  const logs = db.miles.filter(l=>l.carId===id).slice().reverse().slice(0,15);
+  const el = document.getElementById('admin-mile-log');
+  el.innerHTML = `<div class="fcard" style="margin-top:12px">
+    <div class="slabel" style="margin-bottom:10px">รายการเลขไมล์</div>
+    ${logs.length ? logs.map(l=>`<div class="lrow">
+      <div><div class="lrow-name">${l.team}</div><div class="lrow-note">${l.note||'—'}</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="text-align:right"><div class="lrow-val">${km(l.miles)} กม.</div><div class="lrow-date">${fts(l.ts)}</div></div>
+        <button class="icon-btn" style="width:28px;height:28px;font-size:12px;flex-shrink:0"
+          onclick="openEditMile('${l.id}','${l.miles}','${(l.note||'').replace(/'/g,"\\'")}')">✏️</button>
+      </div>
+    </div>`).join('') : '<div class="empty">ยังไม่มีประวัติ</div>'}
+  </div>`;
+}
+
+function openEditMile(id, val, note) {
+  document.getElementById('mile-edit-id').value  = id;
+  document.getElementById('mile-edit-val').value = val;
+  document.getElementById('mile-edit-note').value = note;
+  openModal('modal-mile-edit');
+}
+
+async function submitEditMile() {
+  const id    = document.getElementById('mile-edit-id').value;
+  const miles = parseInt(document.getElementById('mile-edit-val').value);
+  const note  = document.getElementById('mile-edit-note').value.trim();
+  const r = await apiPost({ action:'editMile', data:{id,miles,note} });
+  if (r?.ok) { closeModal('modal-mile-edit'); await loadAll(); if(adminMileCar) pickAdminMile(adminMileCar); }
+}
+
+// ── Admin: EP Edit ──
+function renderAdminEpPicks() {
+  const el = document.getElementById('admin-ep-picks');
+  if (!el) return;
+  el.innerHTML = db.cars.map(car => `<button class="cpick${adminEpCar===car.id?' sel':''}" onclick="pickAdminEp('${car.id}')">
+    <div style="font-size:14px;font-weight:600;color:var(--txt)">${car.name}</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--ep)">${thb(epBal(car.id))}</div>
+  </button>`).join('');
+}
+
+function pickAdminEp(id) {
+  adminEpCar = id;
+  renderAdminEpPicks();
+  const logs = db.easypass.filter(l=>l.carId===id).slice().reverse().slice(0,15);
+  const el = document.getElementById('admin-ep-log');
+  el.innerHTML = `<div class="fcard" style="margin-top:12px">
+    <div class="slabel" style="margin-bottom:10px">รายการ Easy Pass</div>
+    ${logs.length ? logs.map(l=>`<div class="ep-row">
+      <div>
+        <div style="font-size:13px;font-weight:500">${l.type==='topup'?'เติมเงิน':'ใช้ทางด่วน'}</div>
+        <div style="font-size:12px;color:var(--mut)">${l.note||'—'} · ${fts(l.ts)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="${l.type==='topup'?'ep-plus':'ep-minus'}">${l.type==='topup'?'+':'-'}${thb(l.amount)}</span>
+        <button class="icon-btn" style="width:28px;height:28px;font-size:12px;flex-shrink:0"
+          onclick="openEditEp('${l.id}','${l.amount}','${(l.note||'').replace(/'/g,"\\'")}')">✏️</button>
+      </div>
+    </div>`).join('') : '<div class="empty">ยังไม่มีประวัติ</div>'}
+  </div>`;
+}
+
+function openEditEp(id, val, note) {
+  document.getElementById('ep-edit-id').value  = id;
+  document.getElementById('ep-edit-val').value = val;
+  document.getElementById('ep-edit-note').value = note;
+  openModal('modal-ep-edit');
+}
+
+async function submitEditEp() {
+  const id     = document.getElementById('ep-edit-id').value;
+  const amount = parseInt(document.getElementById('ep-edit-val').value);
+  const note   = document.getElementById('ep-edit-note').value.trim();
+  const r = await apiPost({ action:'editEasyPass', data:{id,amount,note} });
+  if (r?.ok) { closeModal('modal-ep-edit'); await loadAll(); if(adminEpCar) pickAdminEp(adminEpCar); }
+}
+
+// ══ IMAGE SEARCH ══
+async function searchCarImages() {
+  const q = document.getElementById('car-img-search').value.trim();
+  if (!q) return;
+  const el = document.getElementById('search-results');
+  el.innerHTML = '<span style="font-size:12px;color:var(--mut)">กำลังค้นหา...</span>';
+  const kw = encodeURIComponent(q + ' car');
+  const imgs = [1,2,3,4].map(n => `https://source.unsplash.com/160x100/?${kw}&sig=${n}`);
+  el.innerHTML = imgs.map((url,i) => `<img class="sr-img" src="${url}" alt="option ${i+1}"
+    onclick="selectCarImg('${url}')" onerror="this.style.display='none'">`).join('');
+}
+
+function selectCarImg(url) {
+  document.getElementById('car-img-url').value = url;
+  document.querySelectorAll('.sr-img').forEach(i=>i.classList.remove('sel'));
+  event.target.classList.add('sel');
+  const prev = document.getElementById('car-img-preview');
+  prev.src = url; prev.className = 'img-preview show';
+}
+
+function previewImg() {
+  const url  = document.getElementById('car-img-url').value.trim();
+  const prev = document.getElementById('car-img-preview');
+  if (url) { prev.src=url; prev.className='img-preview show'; }
+  else { prev.className='img-preview'; }
+}
+
+// ══ MODAL HELPERS ══
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ══ NAV ══
+function go(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('page-'+name).classList.add('on');
+  document.querySelectorAll('.tab')[{status:0,book:1,mile:2,ep:3,bookings:4,admin:5}[name]].classList.add('on');
+  if (name==='book') renderPicks();
+}
+
+// ══ TOAST ══
+function showToast(id, msg, isOk) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent    = msg;
+  el.style.background  = isOk ? 'var(--okb)' : 'var(--wnb)';
+  el.style.borderColor = isOk ? 'var(--okbd)' : 'var(--wnbd)';
+  el.style.color       = isOk ? 'var(--ok)'  : 'var(--wn)';
+  el.className = 'toast show';
+  setTimeout(() => el.className = 'toast', 3500);
+}
+
+// ══ INIT ══
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target===bg) bg.classList.remove('show'); });
+});
+['b-start','b-end'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', renderPicks);
+});
+
+document.getElementById('api-url-input').value = API_URL;
+renderCfgBanner();
+loadAll();
+</script>
+</body>
+</html>
